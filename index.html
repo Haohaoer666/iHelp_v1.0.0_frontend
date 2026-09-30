@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>iHelp 智能客服工作台</title>
+    <link rel="stylesheet" href="/src/styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+          </span>
+          <div class="brand-text">
+            <strong>iHelp</strong>
+            <span>智能客服工作台</span>
+          </div>
+        </div>
+        <div class="topbar-status" role="status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="model-status">DeepSeek V4 Flash · 无思考链</span>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <nav class="rail" aria-label="主要功能">
+          <button class="rail-item is-active" data-view="chat" type="button">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+            </svg>
+            <span>对话</span>
+          </button>
+          <button class="rail-item" data-view="extract" type="button">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+              <path d="M14 2v6h6"/>
+              <path d="M9 13h6M9 17h4"/>
+            </svg>
+            <span>售后提取</span>
+          </button>
+          <button class="rail-item" data-view="rag" type="button">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <ellipse cx="12" cy="5" rx="8" ry="3"/>
+              <path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/>
+              <path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>
+            </svg>
+            <span>知识库</span>
+          </button>
+        </nav>
+
+        <main id="main" class="content">
+          <section id="chat-view" class="view is-active" aria-labelledby="chat-title">
+            <div class="chat-layout">
+              <aside id="conversation-sidebar" class="conversation-sidebar" aria-label="会话列表">
+                <div class="conversation-sidebar-head">
+                  <h2>会话</h2>
+                  <button class="btn-icon" id="new-conversation" type="button" aria-label="新会话" title="新会话">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                  </button>
+                </div>
+                <div id="conversation-list" class="conversation-list"></div>
+              </aside>
+
+              <div class="chat-main">
+                <div class="panel-header">
+                  <div>
+                    <h1 id="chat-title">对话工作台</h1>
+                    <p id="chat-status" class="status-text" aria-live="polite">等待输入</p>
+                  </div>
+                  <button class="btn btn-ghost" id="new-chat" type="button">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    新会话
+                  </button>
+                </div>
+
+                <div id="chat-frame" class="chat-frame" aria-label="对话记录">
+                  <div id="chat-log" class="chat-log"></div>
+                </div>
+
+                <div class="composer">
+                  <div class="session-row">
+                    <div class="session-field">
+                      <label class="field">
+                        <span>会话 ID</span>
+                        <input id="session-id" name="session_id" type="text" autocomplete="off" spellcheck="false">
+                      </label>
+                      <button class="btn-icon" id="copy-session" type="button" aria-label="复制会话 ID" title="复制会话 ID">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                          <rect x="9" y="9" width="13" height="13" rx="2"/>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <p id="chat-error" class="inline-error" role="alert"></p>
+                  </div>
+                  <div class="composer-row">
+                    <label class="field message-field">
+                      <span>消息</span>
+                      <textarea id="chat-message" name="message" rows="3" maxlength="4000"></textarea>
+                      <p class="field-hint"><output id="chat-count">0</output><span> / 4000</span></p>
+                    </label>
+                    <div class="composer-actions">
+                      <button class="btn btn-primary" id="send-chat" type="button">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path d="m22 2-7 20-4-9-9-4Z"/>
+                          <path d="M22 2 11 13"/>
+                        </svg>
+                        发送
+                      </button>
+                      <button class="btn btn-danger" id="stop-chat" type="button" hidden>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <rect x="6" y="6" width="12" height="12" rx="2"/>
+                        </svg>
+                        停止
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="extract-view" class="view" aria-labelledby="extract-title" hidden>
+            <div class="panel-header">
+              <div>
+                <h1 id="extract-title">售后提取</h1>
+                <p id="extract-status" class="status-text" aria-live="polite">等待提交</p>
+              </div>
+            </div>
+
+            <form id="extract-form" class="extract-form" novalidate>
+              <div id="extract-error-summary" class="error-summary" role="alert" tabindex="-1" hidden></div>
+              <label class="field">
+                <span>售后描述</span>
+                <textarea id="extract-text" name="text" rows="6" maxlength="4000" aria-describedby="extract-text-error"></textarea>
+                <p id="extract-text-error" class="inline-error" role="alert"></p>
+              </label>
+              <div class="form-actions">
+                <button class="btn btn-primary" id="run-extract" type="submit">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                    <path d="M21 3v6h-6"/>
+                  </svg>
+                  提取
+                </button>
+              </div>
+            </form>
+
+            <div class="result-panel" aria-live="polite">
+              <div id="extract-empty" class="empty-state">
+                <span class="empty-icon-tile" aria-hidden="true">
+                  <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+                    <path d="M14 2v6h6"/>
+                  </svg>
+                </span>
+                <span>提交后展示结构化结果</span>
+              </div>
+              <div id="extract-result" class="result" hidden>
+                <div class="result-head">
+                  <h2>提取结果</h2>
+                  <button class="btn-icon" id="copy-result" type="button" aria-label="复制结果" title="复制结果">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                  </button>
+                </div>
+                <dl class="result-grid">
+                  <div>
+                    <dt>订单号</dt>
+                    <dd id="result-order">-</dd>
+                  </div>
+                  <div>
+                    <dt>诉求类型</dt>
+                    <dd><span id="result-type" class="badge">-</span></dd>
+                  </div>
+                  <div class="result-wide">
+                    <dt>期望方案</dt>
+                    <dd id="result-solution">-</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          </section>
+
+          <section id="rag-view" class="view" aria-labelledby="rag-title" hidden>
+            <div class="panel-header">
+              <div>
+                <h1 id="rag-title">RAG 知识库</h1>
+                <p id="rag-status" class="status-text" aria-live="polite">等待读取知识库状态</p>
+              </div>
+              <button class="btn btn-ghost" id="rag-refresh" type="button">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                  <path d="M21 3v6h-6"/>
+                </svg>
+                刷新
+              </button>
+            </div>
+
+            <div class="rag-stats" aria-label="知识库统计">
+              <div class="rag-stat">
+                <span>文档</span>
+                <strong id="rag-stat-documents">0</strong>
+              </div>
+              <div class="rag-stat">
+                <span>知识块</span>
+                <strong id="rag-stat-chunks">0</strong>
+              </div>
+              <div class="rag-stat">
+                <span>已向量化</span>
+                <strong id="rag-stat-vectorized">0</strong>
+              </div>
+              <div class="rag-stat">
+                <span>待处理</span>
+                <strong id="rag-stat-pending">0</strong>
+              </div>
+              <div class="rag-stat">
+                <span>失败</span>
+                <strong id="rag-stat-failed">0</strong>
+              </div>
+            </div>
+
+            <div class="rag-actions">
+              <label class="checkbox-field">
+                <input id="rag-rebuild" type="checkbox">
+                <span>重建索引</span>
+              </label>
+              <button class="btn btn-primary" id="rag-build" type="button">重建知识库</button>
+              <button class="btn btn-ghost" id="rag-mine" type="button">挖掘历史问答</button>
+            </div>
+
+            <div class="rag-grid">
+              <section class="rag-panel" aria-labelledby="rag-search-title">
+                <div class="rag-panel-head">
+                  <h2 id="rag-search-title">语义检索测试</h2>
+                  <span class="rag-model">Qwen3-Embedding-0.6B</span>
+                </div>
+                <form id="rag-search-form" class="rag-search-form" novalidate>
+                  <label class="field">
+                    <span>测试问题</span>
+                    <input id="rag-query" type="text" placeholder="例如：邮费是多少" autocomplete="off">
+                  </label>
+                  <button class="btn btn-primary" id="rag-search" type="submit">检索</button>
+                </form>
+                <div id="rag-search-results" class="rag-results" aria-live="polite">
+                  <div class="rag-empty">输入问题后查看 Top-K 召回结果</div>
+                </div>
+              </section>
+
+              <section class="rag-panel" aria-labelledby="rag-chunks-title">
+                <div class="rag-panel-head">
+                  <h2 id="rag-chunks-title">最近知识块</h2>
+                  <span id="rag-chunk-count" class="rag-model">0 条</span>
+                </div>
+                <div id="rag-chunk-list" class="rag-chunk-list" aria-live="polite">
+                  <div class="rag-empty">正在读取知识块</div>
+                </div>
+              </section>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+    <div id="delete-dialog" class="dialog-backdrop" hidden>
+      <section
+        class="dialog-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <div class="dialog-icon danger" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M3 6h18"/>
+            <path d="M8 6V4h8v2"/>
+            <path d="M19 6 18 21H6L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+          </svg>
+        </div>
+        <h2 id="delete-dialog-title">永久删除会话？</h2>
+        <p id="delete-dialog-description">
+          该会话的原文、摘要和运行上下文都会被删除，工单记录会保留。
+        </p>
+        <p id="delete-dialog-error" class="inline-error" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="delete-cancel" class="btn btn-ghost" type="button">取消</button>
+          <button id="delete-confirm" class="btn btn-danger" type="button">确认删除</button>
+        </div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
